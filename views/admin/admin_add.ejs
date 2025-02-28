@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fruit Quiz</title>
+  <link rel="stylesheet" href="/styles/add.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Add Fruit in Quiz</h1>
+    <div class="card">
+      <form action="/add" method="post">
+        <div class="form-group">
+          <label for="fruitName">Fruit name:</label>
+          <input type="text" id="fruitName" name="newItem" placeholder="Enter fruit name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="fruitColor">Fruit Color:</label>
+          <input type="text" id="fruitColor" name="fruitColor" placeholder="Enter fruit color" required>
+        </div>
+        <button type="submit">Add Fruit</button>
+      </form>
+    </div>
+  </div>
+  <form action="/admin" method="get">
+    <button type="submit">Back to Quiz</button>
+  </form>
+</body>
+
+</html>

@@ -53,7 +53,7 @@ input {
   border-radius: 5px;
 }
 
-button {
+.button {
   font-weight: 800;
   letter-spacing: 2px;
   font-size: large;
@@ -65,6 +65,20 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+.menu {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
 }
 
 .horizontal-container {
