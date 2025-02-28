@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fruit Color Quiz</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body id="app">
+  <% if (locals.quiz) {%>
+  <form class="container" action="/submit" method="post">
+    <div class="horizontal-container">
+      <h3>
+        Total Score:
+        <span id="score">
+          <%= locals.totalScore ? totalScore : "0" %>
+        </span>
+      </h3>
+
+    </div>
+
+    <h1 id="fruitName">
+      <%=question.fruit_name %>
+    </h1>
+    <div class="answer-container">
+      <h3>What color is this fruit? </h3>
+      <input type="text" name="answer" id="userInput" placeholder="Enter the color" autofocus autocomplete="off">
+
+    </div>
+    <button type="submit">SUBMIT<% if(locals.wasCorrect){ %>
+        <span class="checkmark">✔</span>
+        <% } else if (locals.wasCorrect===false) { %>
+          <span class="cross" id="error">✖</span>
+          <% } %>
+    </button>
+  </form>
+
+
+ <!-- When answer wrong color -->
+  <% } else{%>
+    <form class="container">
+      <div style="margin: auto;">
+        <h3>
+          Game Over! Total Score:
+          <span id="score">
+            <%= locals.totalScore %>
+          </span>
+        </h3>
+      </div>
+      <div class="answer-container">
+        <h1 style="color: red;">Wrong Answer</h1>
+        <h1><%=question.fruit_name %></h1>
+        <p>color is </p>
+        <h1 style="color: <%= question.fruit_color %>; "> <%= question.fruit_color %> </h1>
+      </div>
+      <div class="restart-container">
+        <a href="/" class="restart-button"> Restart </a>
+      </div>
+    </form>
+    <% } %>
+</body>
+
+</html>
