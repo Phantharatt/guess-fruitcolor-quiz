@@ -8,11 +8,13 @@
   <link rel="stylesheet" href="/styles/main.css">
 </head>
 
+<% const user_login = locals.user %>
+
 <body id="app">
     <form class="container">
       <div style="margin: auto;">
         <h3>
-          Game Over! Total Score:
+          Game Over! <%= user_login.toUpperCase(); %> have Total Score:
           <span id="score">
             <%= locals.totalScore %>
           </span>
@@ -28,7 +30,9 @@
         <a href="/" class="restart-button"> Restart </a>
       </div>
     </form>
-    <%- include('patials/footer.ejs'); -%>
+
+
+    <%- include('partials/footer.ejs'); -%>
 
 </body>
 

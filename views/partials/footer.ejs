@@ -1,0 +1,26 @@
+</main>
+<footer>Phantharat Tareram <%= new Date().getFullYear() %>
+</footer>
+
+<div class="button-container">
+    <form action="/" method="get">
+        <button class="bottom-button">Home</button>
+      </form>
+    <form action="/scoreboard" method="get">
+      <button class="bottom-button">scoreboard</button>
+    </form>
+  <% if (locals.user && locals.user !== "") { %>
+    <form action="/logout" method="get">
+      <button class="bottom-button">Logout</button>
+    </form>
+  <% } else { %>
+    <form action="/login" method="get">
+      <button class="bottom-button">Login</button>
+    </form>
+    
+  <% } %>
+  
+  <!-- <form action="/contact" method="get">
+    <button class="bottom-button">Contact</button>
+  </form> -->
+</div>

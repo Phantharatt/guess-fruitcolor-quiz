@@ -18,6 +18,7 @@ const db = new pg.Client({
 db.connect();
 
 let quiz = [];
+var user_login = "";
 
 db.query("SELECT * FROM fruits",(err, res)=>{
   if(err){
@@ -34,7 +35,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 let currentQuestion = {};
-const active = true;
 // GET home page
 app.get("/", async (req, res) => {
   totalCorrect = 0;
@@ -42,12 +42,12 @@ app.get("/", async (req, res) => {
   // console.log(currentQuestion);
   res.render("index.ejs", { 
     question: currentQuestion,
-    quiz : active
+    user: user_login
   });
 });
 
 // POST a new post
-app.post("/submit", (req, res) => {
+app.post("/submit", async(req, res) => {
   let answer = req.body.answer.trim();
   let isCorrect = false;
   if (currentQuestion.fruit_color.toLowerCase() === answer.toLowerCase()) {
@@ -59,12 +59,18 @@ app.post("/submit", (req, res) => {
       question: currentQuestion,
       wasCorrect: isCorrect,
       totalScore: totalCorrect,
+      user : user_login
     });
   }
   else{
+    if (user_login != ""){
+      console.log(user_login,totalCorrect);
+      await db.query("INSERT INTO scoreboard(username,score) VALUES ($1,$2);",[user_login,totalCorrect]);
+    }
     res.render("gameover.ejs",{
       question: currentQuestion,
       totalScore: totalCorrect,
+      user: user_login
     });
   }
 });
@@ -87,7 +93,8 @@ app.post("/login",async(req,res)=>{
     const checkuser = await db.query("SELECT * FROM users WHERE username = $1 AND password = $2;",[username,password]);
     
     if (checkuser.rowCount !== 0){
-      console.log("login Complete")
+      console.log("login Complete");
+      user_login = username;
       res.redirect("/");
     }
     
@@ -98,7 +105,13 @@ app.post("/login",async(req,res)=>{
       });
     }
   }
-})
+});
+
+// Logout
+app.get("/logout",(req,res)=>{
+  user_login = "";
+  res.redirect("/");
+});
 
 // Register Page 
 app.get("/register",async(req,res)=>{
@@ -129,10 +142,42 @@ app.post("/register",async(req,res)=>{
 
 });
 
+// Scoreboard
+
+app.get("/scoreboard", async (req, res) => {
+  try {
+    const result = await db.query("SELECT username,score FROM scoreboard ORDER BY score DESC");
+    const items = result.rows;
+    console.log(items);
+    res.render("scoreboard.ejs", {
+      listItems: items,
+      user: user_login
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+
 // Admin Page
-app.get("/admin",(req,res)=>{
+app.get("/admin",async(req,res)=>{
   res.render("admin/admin_menu.ejs");
 })
+
+app.get("/admin/add",async(req,res)=>{
+  res.render("admin/admin_add.ejs");
+})
+
+app.get("/admin/edit",async(req,res)=>{
+  res.render("admin/admin_edit.ejs");
+})
+
+app.get("/admin/remove",async(req,res)=>{
+  res.render("admin/admin_remove.ejs");
+})
+
+
+
 
 async function nextQuestion() {
   const randomFruit = quiz[Math.floor(Math.random() * quiz.length)];

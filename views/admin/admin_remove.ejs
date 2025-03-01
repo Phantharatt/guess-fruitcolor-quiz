@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Item</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .item-list {
+            margin-bottom: 30px;
+        }
+        .item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-info {
+            flex-grow: 1;
+        }
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .item-description {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .item-price {
+            color: #4CAF50;
+        }
+        .remove-item-button {
+            padding: 8px 16px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .remove-item-button:hover {
+            background-color: #d32f2f;
+        }
+        .back-button {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            background-color: #607D8B;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .back-button:hover {
+            background-color: #546E7A;
+        }
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            width: 50%;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .modal-buttons {
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .confirm-button {
+            background-color: #f44336;
+            color: white;
+        }
+        .cancel-button {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Remove Items</h1>
+        
+        <div class="item-list">
+            <% items.forEach(function(item) { %>
+                <div class="item">
+                    <div class="item-info">
+                        <div class="item-name"><%= item.name %></div>
+                        <div class="item-description"><%= item.description %></div>
+                        <div class="item-price">$<%= item.price %></div>
+                    </div>
+                    <button class="remove-item-button" onclick="confirmDelete('<%= item.id %>')">Remove</button>
+                </div>
+            <% }); %>
+        </div>
+        
+        <a href="/admin" class="back-button">Back to Dashboard</a>
+    </div>
+
+    <div id="confirmModal" class="confirm-modal">
+        <div class="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to remove this item? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="cancel-button" onclick="closeModal()">Cancel</button>
+                <button class="confirm-button" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(itemId) {
+            document.getElementById('confirmModal').style.display = 'block';
+            document.getElementById('confirmDelete').onclick = function() {
+                window.location.href = '/admin/remove/' + itemId + '/confirm';
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,35 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fruit Quiz</title>
-  <link rel="stylesheet" href="/styles/add.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .submit-button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+        .back-button {
+            padding: 12px 24px;
+            background-color: #607D8B;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background-color: #546E7A;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>Add Fruit in Quiz</h1>
-    <div class="card">
-      <form action="/add" method="post">
-        <div class="form-group">
-          <label for="fruitName">Fruit name:</label>
-          <input type="text" id="fruitName" name="newItem" placeholder="Enter fruit name" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="fruitColor">Fruit Color:</label>
-          <input type="text" id="fruitColor" name="fruitColor" placeholder="Enter fruit color" required>
-        </div>
-        <button type="submit">Add Fruit</button>
-      </form>
+    <div class="container">
+        <h1>Add New Item</h1>
+        <form action="/admin/add" method="POST">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="text" id="price" name="price" required>
+            </div>
+            <div class="button-container">
+                <a href="/admin" class="back-button">Back to Dashboard</a>
+                <button type="submit" class="submit-button">Add Item</button>
+            </div>
+        </form>
     </div>
-  </div>
-  <form action="/admin" method="get">
-    <button type="submit">Back to Quiz</button>
-  </form>
 </body>
-
 </html>

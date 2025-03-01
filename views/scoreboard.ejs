@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scoreboard</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<% const user_login = locals.user %>
+
+<body class="container">
+  <h1 style="color: goldenrod;">Scoreboard</h1>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Username</th>
+        <th>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(listItems.length > 0) { %>
+        <% listItems.forEach((item, index) => { %>
+            <td class="rank"><%= index + 1 %></td>
+            <td><%= item.username %></td>
+            <td><%= item.score %></td>
+          </tr>
+        <% }); %>
+      <% } else { %>
+        <tr>
+          <td style="text-align: center;">No scores available yet</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+  <%- include('partials/footer.ejs', { user: user_login }); %>
+</body>
+</html>
