@@ -1,6 +1,7 @@
 body {
   background-image: url(../images/background.jpg);
   background-repeat: no-repeat;
+  background-attachment:fixed;
   background-size: cover;
   font-family: Arial, sans-serif;
 }
@@ -19,9 +20,14 @@ body {
   padding-top: 10px;
 }
 
-
-
-
+.scoreboard-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
 h1 {
   text-align: center;
@@ -138,7 +144,7 @@ button:hover {
 
 
 /* Bottom right button container */
-.button-container {
+.bottom-button-container {
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -146,24 +152,24 @@ button:hover {
   flex-direction: column;
   gap: 10px;
 }
-
 .bottom-button {
   padding: 10px 20px;
-  background-color: #4285F4;
+  background-color: #EC666D;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 5px;
+  font-size: 17px;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
-  width: 120px;
+  width: 130px;
   text-align: center;
 }
 
 .bottom-button:hover {
   background-color: #3367d6;
 }
+
 
 /* score board css */
 table {

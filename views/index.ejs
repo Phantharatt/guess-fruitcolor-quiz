@@ -13,8 +13,13 @@
 <body id="app">
   <form class="container" action="/submit" method="post">
     <div class="horizontal-container">
-      <h3>
-         <%= user_login.toUpperCase(); %> : Total Score:
+      <h3 style="color: #741F32;">
+        <% if (user_login){ %>
+          User:
+          <%= user_login.toUpperCase(); %>
+          <br>
+          <% } %>
+          Total Score:
         <span id="score">
           <%= locals.totalScore ? totalScore : "0" %>
         </span>
@@ -39,10 +44,7 @@
 
   </form>
 
-  <% if (user_login != "" ){ %>
-      <% console.log(locals.user) %>
-    <% } %>
-    <%- include('partials/footer.ejs', { user: user_login }); %>
+  <%- include('partials/footer.ejs', { user: user_login ,permission: locals.permission}); %>
 </body>
 
 

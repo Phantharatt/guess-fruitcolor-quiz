@@ -9,8 +9,8 @@
 
 <% const user_login = locals.user %>
 
-<body class="container">
-  <h1 style="color: goldenrod;">Scoreboard</h1>
+<body class="scoreboard-container">
+  <h1 style="color: #E6E89C;">Scoreboard</h1>
   
   <table>
     <thead>
@@ -35,6 +35,6 @@
       <% } %>
     </tbody>
   </table>
-  <%- include('partials/footer.ejs', { user: user_login }); %>
+  <%- include('partials/footer.ejs', { user: user_login,permission: locals.permission }); %>
 </body>
 </html>

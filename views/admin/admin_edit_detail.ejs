@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Fruit</title>
+    <link rel="stylesheet" href="/styles/admin.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Fruit in Quiz</h1>
+        <form action="/admin/edit/<%= fruit_name %>/update" method="POST">
+            <div class="form-group">
+                <label for="name">Fruit name:</label>
+                <input type="text" id="fruit_name" name="fruit_name" value="<%= fruit_name %>" required>
+            </div>
+            <div class="form-group">
+                <label for="Color">Color:</label>
+                <input type="text" id="fruit_color" name="fruit_color" value="<%= fruit_color %>" required>
+            </div>
+            <% if (locals.message) { %>
+                <div class="error-message"><%= locals.message %></div>
+            <% } %>
+            <div class="button-container">
+                <a href="/admin/edit" class="back-button">Back to Edit List</a>
+                <button type="submit" class="submit-button">Update Fruit</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
