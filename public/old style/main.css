@@ -187,3 +187,125 @@ th {
   background-color: #f2f2f2;
   font-weight: bold;
 }
+
+.game-over-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  max-width: 600px;
+  min-height: 450px;
+  margin: 5% auto;
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.result-header {
+  margin-bottom: 10px;
+}
+
+.user-score {
+  font-size: 24px;
+  color: #333;
+  font-weight: bold;
+  display: inline-block;
+  margin: 5px 0 20px;
+  padding: 8px 20px;
+  background-color: #f8f8f8;
+  border-radius: 30px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.score-number {
+  color: #FF6B6B;
+  font-size: 28px;
+}
+
+.answer-result {
+  background-color: #ffeeee;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.wrong-answer {
+  color: #FF3A3A;
+  font-size: 28px;
+  font-weight: bold;
+  margin: 5px 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fruit-name {
+  font-size: 32px;
+  margin: 10px 0;
+}
+
+.color-label {
+  font-size: 18px;
+  margin: 5px 0;
+  color: #555;
+}
+
+.fruit-color {
+  font-size: 30px;
+  font-weight: bold;
+  padding: 5px 15px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 5px 0 15px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.image-container {
+  margin: 10px auto 20px;
+  max-width: 100%;
+  max-height: 250px;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.image-container img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.no-image-msg {
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 10px;
+  color: #666;
+}
+
+.restart-button {
+  display: inline-block;
+  background: linear-gradient(to right, #FF8A65, #FF5252);
+  color: white;
+  padding: 12px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 30px;
+  box-shadow: 0 4px 10px rgba(255, 82, 82, 0.3);
+  transition: all 0.3s ease;
+  margin: 15px 0;
+}
+
+.restart-button:hover {
+  background: linear-gradient(to right, #FF5252, #FF8A65);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 82, 82, 0.4);
+}
+
+.login-hint {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #666;
+  text-decoration: underline;
+}

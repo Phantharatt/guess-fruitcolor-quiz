@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fruit Color Quiz</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<% const user_login = locals.user %>
+
+<body id="app">
+  <form class="container" action="/submit" method="post">
+    <div class="horizontal-container">
+      <h3 style="color: #741F32;">
+        <% if (user_login){ %>
+          User:
+          <%= user_login.toUpperCase(); %>
+          <br>
+          <% } %>
+          Total Score:
+        <span id="score">
+          <%= locals.totalScore ? totalScore : "0" %>
+        </span>
+      </h3>
+
+    </div>
+
+    <h1 id="fruitName">
+      <%=question.fruit_name %>
+    </h1>
+    <div class="answer-container">
+      <h3>What color is this fruit? </h3>
+      <input type="text" name="answer" id="userInput" placeholder="Enter the color" autofocus autocomplete="off" required>
+
+    </div>
+    <button type="submit" class="button">SUBMIT<% if(locals.wasCorrect){ %>
+        <span class="checkmark">✔</span>
+        <% } else if (locals.wasCorrect===false) { %>
+          <span class="cross" id="error">✖</span>
+          <% } %>
+    </button>
+
+  </form>
+
+  <%- include('partials/footer.ejs', { user: user_login ,permission: locals.permission}); %>
+</body>
+
+
+</html>

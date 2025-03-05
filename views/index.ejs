@@ -5,47 +5,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fruit Color Quiz</title>
-  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/quiz.css">
 </head>
 
 <% const user_login = locals.user %>
 
 <body id="app">
-  <form class="container" action="/submit" method="post">
-    <div class="horizontal-container">
-      <h3 style="color: #741F32;">
-        <% if (user_login){ %>
-          User:
-          <%= user_login.toUpperCase(); %>
-          <br>
-          <% } %>
-          Total Score:
-        <span id="score">
-          <%= locals.totalScore ? totalScore : "0" %>
-        </span>
-      </h3>
-
+  <form class="quiz-container" action="/submit" method="post">
+    <div class="header-section">
+      <div>
+        Total Score: <span class="text-value" id="score"><%= locals.totalScore ? totalScore : "0" %></span>
+      </div>
+      <% if (user_login && user_login !== ""){ %>
+        <div class="text-value text-display">
+          User: <%= user_login.toUpperCase(); %>
+        </div>
+      <% } %>
     </div>
 
-    <h1 id="fruitName">
-      <%=question.fruit_name %>
-    </h1>
-    <div class="answer-container">
-      <h3>What color is this fruit? </h3>
-      <input type="text" name="answer" id="userInput" placeholder="Enter the color" autofocus autocomplete="off" required>
-
+    <h1 class="fruit-name" id="fruitName"><%=question.fruit_name %></h1>
+    
+    <div class="question-section">
+      <h3 class="question-text">What color is this fruit?</h3>
+      <input 
+        type="text" 
+        name="answer" 
+        id="userInput" 
+        class="answer-input" 
+        placeholder="Enter the color" 
+        autofocus 
+        autocomplete="off" 
+        required
+      >
     </div>
-    <button type="submit" class="button">SUBMIT<% if(locals.wasCorrect){ %>
-        <span class="checkmark">✔</span>
-        <% } else if (locals.wasCorrect===false) { %>
-          <span class="cross" id="error">✖</span>
-          <% } %>
+    
+    <button type="submit" class="submit-button">
+      SUBMIT
+      <% if(locals.wasCorrect){ %>
+        <span class="checkmark">✓</span>
+      <% } else if (locals.wasCorrect===false) { %>
+        <span class="cross" id="error">✗</span>
+      <% } %>
     </button>
-
   </form>
 
-  <%- include('partials/footer.ejs', { user: user_login ,permission: locals.permission}); %>
+  <%- include('partials/footer.ejs', { user: user_login, permission: locals.permission}); %>
 </body>
-
 
 </html>

@@ -3,38 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scoreboard</title>
-  <link rel="stylesheet" href="/styles/main.css">
+  <title>Fruit Color Quiz - Scoreboard</title>
+  <link rel="stylesheet" href="/styles/quiz.css">
 </head>
 
 <% const user_login = locals.user %>
 
-<body class="scoreboard-container">
-  <h1 style="color: #E6E89C;">Scoreboard</h1>
-  
-  <table>
-    <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Username</th>
-        <th>Score</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if(listItems.length > 0) { %>
-        <% listItems.forEach((item, index) => { %>
-            <td class="rank"><%= index + 1 %></td>
-            <td><%= item.username %></td>
-            <td><%= item.score %></td>
+<body id="app">
+  <div class="quiz-container scoreboard-wrapper">
+    <h1 class="scoreboard-title">Scoreboard</h1>
+    
+    <div class="scoreboard-table-container">
+      <table class="scoreboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Score</th>
           </tr>
-        <% }); %>
-      <% } else { %>
-        <tr>
-          <td style="text-align: center;">No scores available yet</td>
-        </tr>
-      <% } %>
-    </tbody>
-  </table>
-  <%- include('partials/footer.ejs', { user: user_login,permission: locals.permission }); %>
+        </thead>
+        <tbody>
+          <% if(listItems.length > 0) { %>
+            <% listItems.forEach((item, index) => { %>
+              <tr class='current-user-row'>
+                <td class="rank"><%= index + 1 %></td>
+                <td><%= item.username %></td>
+                <td><%= item.score %></td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="3" class="empty-table">No scores available yet</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    
+    <a href="/" class="restart-button">Back to Game</a>
+  </div>
+
+  <%- include('partials/footer.ejs', { user: user_login, permission: locals.permission }); %>
 </body>
 </html>

@@ -2,6 +2,9 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
 import dotenv from 'dotenv';
+import { getFruitImages } from './pixabayAPI.js';
+
+
 dotenv.config();
 
 const app = express();
@@ -17,10 +20,13 @@ const db = new pg.Client({
 
 db.connect();
 
-let quiz = [];
+// for login Page 
 var user_login = "";
 let permission = false;
 
+// for quiz
+let quiz = [];
+let totalCorrect = 0;
 
 
 
@@ -32,13 +38,22 @@ db.query("SELECT * FROM fruits",(err, res)=>{
   }
 });
 
-let totalCorrect = 0;
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 let currentQuestion = {};
+
+
+async function nextQuestion() {
+  const randomFruit = quiz[Math.floor(Math.random() * quiz.length)];
+
+  currentQuestion = randomFruit;
+  console.log(currentQuestion);
+}
+
+
 // GET home page
 app.get("/", async (req, res) => {
   totalCorrect = 0;
@@ -55,7 +70,9 @@ app.get("/", async (req, res) => {
 app.post("/submit", async(req, res) => {
   let answer = req.body.answer.trim();
   let isCorrect = false;
-  if (currentQuestion.fruit_color.toLowerCase() === answer.toLowerCase()) {
+  const current_fruit = currentQuestion.fruit_name
+  const current_color = currentQuestion.fruit_color
+  if (current_color.toLowerCase() == answer.toLowerCase()) {
     totalCorrect++;
     console.log("Total Score : ",totalCorrect);
     isCorrect = true;
@@ -73,12 +90,26 @@ app.post("/submit", async(req, res) => {
       // console.log(user_login,totalCorrect);
       await db.query("INSERT INTO scoreboard(username,score) VALUES ($1,$2);",[user_login,totalCorrect]);
     }
-    res.render("gameover.ejs",{
-      question: currentQuestion,
-      totalScore: totalCorrect,
-      user: user_login,
-      permission : permission
-    });
+    try{
+      const image = await getFruitImages(current_fruit, current_color);
+      res.render("gameover.ejs",{
+        question: currentQuestion,
+        totalScore: totalCorrect,
+        user: user_login,
+        permission : permission,
+        image: image
+      });
+    }
+    catch(err){
+      console.log("Can't GET fruit image",err);
+      res.render("gameover.ejs", {
+        question: currentQuestion,
+        totalScore: totalCorrect,
+        user: user_login,
+        permission: permission,
+        images: []
+      });
+    }
   }
 });
 
@@ -135,30 +166,39 @@ app.post("/register",async(req,res)=>{
   const username = req.body.username;
   const password = req.body.password;
   const confirm_password = req.body.confirm_password;
+  const checkadmin = await db.query("SELECT * FROM admins WHERE LOWER(username) = LOWER($1)",[username]);
   console.log(username,password);
-  if (password == confirm_password){
-    try {
-      await db.query("INSERT INTO users(username,password) VALUES ($1,$2);",[username,password]);
-      res.redirect("/");
+  if (checkadmin.rowCount == 0){
+    if (password == confirm_password){
+      try {
+        await db.query("INSERT INTO users(username,password) VALUES ($1,$2);",[username,password]);
+        res.redirect("/");
+      }
+      catch (err){
+        res.render("register.ejs",{
+          error : "Already have this username!!!"
+        });
+      }
     }
-    catch (err){
+    else{
       res.render("register.ejs",{
-        error : "Already have this username!!!"
+        error : "Password does not match"
       });
     }
   }
   else{
     res.render("register.ejs",{
-      error : "Password does not match"
+      error : "Already have this username!!!"
     });
   }
+
 
 });
 
 // Scoreboard Page
 app.get("/scoreboard", async (req, res) => {
   try {
-    const result = await db.query("SELECT username,score FROM scoreboard ORDER BY score DESC");
+    const result = await db.query("SELECT username,score FROM scoreboard ORDER BY score DESC , id ASC");
     const items = result.rows;
     console.log(items);
     res.render("scoreboard.ejs", {
@@ -232,6 +272,7 @@ app.post("/admin/add",async(req,res)=>{
 });
 
 let fruits = [];
+
 async function getItems(){
   fruits = [];
   const result = await db.query("SELECT * FROM fruits ORDER BY id ASC");
@@ -327,14 +368,19 @@ app.get("/admin/remove/:name/confirm",async(req,res)=>{
   res.redirect("/admin/remove");
 });
 
+// Get Fruit image from picalbayAPI.js
+app.get("/fruit-images/:fruit", async (req, res) => {
+  const fruit = req.params.fruit;
+  const color = req.query.color;
+  try {
+    const images = await getFruitImages(fruit, color);
+    res.json(images);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching fruit images' });
+  }
+});
 
 
-async function nextQuestion() {
-  const randomFruit = quiz[Math.floor(Math.random() * quiz.length)];
-
-  currentQuestion = randomFruit;
-  console.log(currentQuestion);
-}
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

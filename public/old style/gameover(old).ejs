@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fruit Color Quiz</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<% const user_login = locals.user %>
+
+<body id="app">
+  <form class="container">
+    <div style="margin: auto;">
+      <h3>
+        Game Over! <%= user_login.toUpperCase(); %> have Total Score:
+        <span id="score">
+          <%= locals.totalScore %>
+        </span>
+      </h3>
+    </div>
+    <div class="answer-container">
+      <h1 style="color: red;">Wrong Answer</h1>
+      <h1><%=question.fruit_name %></h1>
+      <p>color is </p>
+      <h1 style="color: <%= question.fruit_color %>; "> <%= question.fruit_color %> </h1>
+    </div>
+    <div class="image-container">
+      <% if (locals.image !== []) { %>
+        <img src="<%= locals.image.webformatURL %>" alt="Fruit Image" />
+      <% } else { %>
+        <h1> This Fruit not have Image!!!</h1>
+      <% } %>
+    </div>
+    <div class="restart-container">
+      <a href="/" class="restart-button"> Restart </a>
+    </div>
+    <% if (user_login == "" ){ %>
+    <h4 style="color: aliceblue; text-decoration: underline"> Log in to save your score to the scoreboard</h4>
+    <% } %>
+  </form>
+
+    <%- include('partials/footer.ejs'); -%>
+
+</body>
+
+</html>

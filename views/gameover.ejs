@@ -4,38 +4,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fruit Color Quiz</title>
-  <link rel="stylesheet" href="/styles/main.css">
+  <title>Fruit Color Quiz - Game Over</title>
+  <!-- <link rel="stylesheet" href="/styles/main.css"> -->
+  <link rel="stylesheet" href="/public/styles/quiz.css">
 </head>
 
 <% const user_login = locals.user %>
 
 <body id="app">
-  <form class="container">
-    <div style="margin: auto;">
-      <h3>
-        Game Over! <%= user_login.toUpperCase(); %> have Total Score:
-        <span id="score">
-          <%= locals.totalScore %>
-        </span>
-      </h3>
+  <div class="game-over-container">
+    <div class="result-header">
+      <h1>Game Over!</h1>
+      <div class="user-score">
+        <% if (user_login && user_login !== "") { %>
+          <span><%= user_login.toUpperCase() %> Total Score: </span>
+        <% } else { %>
+          <span>Your Score: </span>
+        <% } %>
+        <span class="score-number"><%= locals.totalScore %></span>
+      </div>
     </div>
-    <div class="answer-container">
-      <h1 style="color: red;">Wrong Answer</h1>
-      <h1><%=question.fruit_name %></h1>
-      <p>color is </p>
-      <h1 style="color: <%= question.fruit_color %>; "> <%= question.fruit_color %> </h1>
+    
+    <div class="answer-result">
+      <div class="wrong-answer">Wrong Answer</div>
+      <h2 class="fruit-name"><%=question.fruit_name %></h2>
+      <p class="color-label">The correct color is</p>
+      <div class="fruit-color" style="color: <%= question.fruit_color %>;">
+        <%= question.fruit_color %>
+      </div>
     </div>
-    <div class="restart-container">
-      <a href="/" class="restart-button"> Restart </a>
+    
+    <div class="image-container">
+      <% if (locals.image && locals.image.webformatURL) { %>
+        <img src="<%= locals.image.webformatURL %>" alt="<%= question.fruit_name %>" />
+      <% } else { %>
+        <div class="no-image-msg">
+          <h3>No image available for this fruit</h3>
+        </div>
+      <% } %>
     </div>
-    <% if (user_login == "" ){ %>
-    <h4 style="color: aliceblue; text-decoration: underline"> Log in to save your score to the scoreboard</h4>
-    <% } %>
-  </form>
+    
+    <div>
+      <a href="/" class="restart-button">Play Again</a>
+      
+      <% if (user_login === "") { %>
+        <p class="login-hint">Log in to save your score to the scoreboard</p>
+      <% } %>
+    </div>
+  </div>
 
-    <%- include('partials/footer.ejs'); -%>
-
+  <%- include('partials/footer.ejs'); -%>
 </body>
 
 </html>
