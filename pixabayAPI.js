@@ -11,14 +11,14 @@ export async function getFruitImages(fruit,color) {
         const response = await axios.get(pixabay_api_url, {
             params: {
                 key: pixabay_api,
-                q: 'fruit '+ fruit + ' ' +color,
+                q: 'fruit ' + fruit + ' ' +color,
                 per_page: 3
             }
         });
         // console.log(response.data.hits[0]);
         return response.data.hits[0];
     } catch (err) {
-        console.error('Error fetching data from Pixabay API:', err);
+        console.error('Can not get data from Pixabay API:', err);
         return [];
     }
 }

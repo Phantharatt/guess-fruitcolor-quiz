@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import pg from "pg";
 import dotenv from 'dotenv';
 import { getFruitImages } from './pixabayAPI.js';
-
+import bcrypt from 'bcrypt';
 
 dotenv.config();
 
@@ -28,6 +28,8 @@ let permission = false;
 let quiz = [];
 let totalCorrect = 0;
 
+// bcrypt config
+const saltRounds = 10;
 
 
 db.query("SELECT * FROM fruits",(err, res)=>{
@@ -122,28 +124,45 @@ app.post("/login",async(req,res)=>{
   const username = req.body.username;
   const password = req.body.password;
   console.log(username,password);
-  const checkadmin = await db.query("SELECT * FROM admins WHERE username = $1 AND password = $2;",[username,password]);
-  // console.log(result);
-  if (checkadmin.rowCount !== 0){
-    console.log("Welcome Admin : ",username);
-    user_login = username;
-    permission = true;
-    res.render("admin/admin_menu.ejs",{
-      user : user_login
-    });
-  }
-  else{
-    const checkuser = await db.query("SELECT * FROM users WHERE username = $1 AND password = $2;",[username,password]);
-    
-    if (checkuser.rowCount !== 0){
-      console.log("login Complete");
+  
+  // Check admin login
+  const checkadmin = await db.query("SELECT * FROM admins WHERE username = $1;", [username]);
+  
+  if (checkadmin.rowCount !== 0) {
+    // Use bcrypt to compare password
+    const match = await bcrypt.compare(password, checkadmin.rows[0].password);
+    if (match) {
+      console.log("Welcome Admin : ", username);
       user_login = username;
-      res.redirect("/");
+      permission = true;
+      res.render("admin/admin_menu.ejs", {
+        user : user_login
+      });
+    } else {
+      res.render("login.ejs", {
+        error : "Wrong username or password"
+      });
     }
+  } else {
+    // Check user login
+    const checkuser = await db.query("SELECT * FROM users WHERE username = $1;", [username]);
     
-    else{
+    if (checkuser.rowCount !== 0) {
+      // Use bcrypt to compare password
+      const match = await bcrypt.compare(password, checkuser.rows[0].password);
+      if (match) {
+        console.log("login Complete");
+        user_login = username;
+        res.redirect("/");
+      } else {
+        console.log("login fail")
+        res.render("login.ejs", {
+          error : "Wrong username or password"
+        });
+      }
+    } else {
       console.log("login fail")
-      res.render("login.ejs",{
+      res.render("login.ejs", {
         error : "Wrong username or password"
       });
     }
@@ -171,7 +190,9 @@ app.post("/register",async(req,res)=>{
   if (checkadmin.rowCount == 0){
     if (password == confirm_password){
       try {
-        await db.query("INSERT INTO users(username,password) VALUES ($1,$2);",[username,password]);
+        // Hash password using bcrypt
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        await db.query("INSERT INTO users(username,password) VALUES ($1,$2);", [username, hashedPassword]);
         res.redirect("/");
       }
       catch (err){
@@ -191,8 +212,6 @@ app.post("/register",async(req,res)=>{
       error : "Already have this username!!!"
     });
   }
-
-
 });
 
 // Scoreboard Page
@@ -260,15 +279,6 @@ app.post("/admin/add",async(req,res)=>{
         message : "This color does not exist!!!"
       });
     }
-  
-  // catch (err){
-  //   console.log("Fruit error!!!");
-  //   res.render("admin/admin_add.ejs",{
-  //     message : "Already have this Fruit Name in Database!!!"
-  //   });
-  // }
-
-  
 });
 
 let fruits = [];

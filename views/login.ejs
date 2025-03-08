@@ -20,7 +20,7 @@
         </div>
         <div class="form-group">
           <label for="Password">Password:</label>
-          <input type="text" id="Password" name="password" placeholder="Enter Password" required>
+          <input type="password" id="Password" name="password" placeholder="Enter Password" autocomplete="off" required>
         </div>
         <% if (locals.error) { %>
           <div class="error-message"> <%= locals.error %></div>
