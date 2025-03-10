@@ -238,6 +238,16 @@ function checkPermission(res){
   }
 }
 
+function checkPermissionDeep(res,wait){
+  if (!permission){
+    res.redirect("/");
+    return false
+  }
+  else{
+    return true
+  }
+}
+
 // Admin Page
 app.get("/admin",(req,res)=>{
   checkPermission(res);
@@ -253,8 +263,8 @@ app.get("/admin/add",(req,res)=>{
 });
 
 app.post("/admin/add",async(req,res)=>{
-  const fruit_name = req.body.fruit_name;
-  const fruit_color = req.body.fruit_color;
+  const fruit_name = req.body.fruit_name.trim();
+  const fruit_color = req.body.fruit_color.trim();
   const check_name = await db.query("SELECT * FROM fruits WHERE LOWER(fruit_name) = LOWER($1) ",[fruit_name]);
   const check_color = await db.query("SELECT * FROM fruits WHERE LOWER(fruit_color) = LOWER($1) ",[fruit_color]);
 
@@ -295,18 +305,17 @@ async function getItems(){
 
 // Admin Edit Page
 app.get("/admin/edit",async(req,res)=>{
-  checkPermission(res);
+  await checkPermission(res);
   await getItems();
   // console.log(items);
-  checkPermission(res);
   res.render("admin/admin_edit.ejs",{
     fruits : fruits
   });
 });
 
 app.get("/admin/edit/:name",async(req,res)=>{
-  checkPermission(res);
-  const fruit_name = req.params.name;
+  await checkPermission(res);
+  const fruit_name = req.params.name.trim();
   const result = await db.query("SELECT * FROM fruits WHERE fruit_name = $1;",[fruit_name]);
   console.log(result.rows[0]);
   res.render("admin/admin_edit_detail.ejs",{
@@ -318,9 +327,9 @@ app.get("/admin/edit/:name",async(req,res)=>{
 
 // Admin Confirm Edit Page
 app.post("/admin/edit/:name/update", async (req, res) => {
-  checkPermission(res);
-  const oldName = req.params.name;
-  const newName = req.body.fruit_name;
+  await checkPermission(res);
+  const oldName = req.params.name.trim();
+  const newName = req.body.fruit_name.trim();
   const newColor = req.body.fruit_color;
   
   const checkColor = await db.query("SELECT * FROM fruits WHERE LOWER(fruit_color) = LOWER($1)", [newColor]);
@@ -360,22 +369,22 @@ app.post("/admin/edit/:name/update", async (req, res) => {
 
 // Admin Remove Page
 app.get("/admin/remove",async(req,res)=>{
-  checkPermission(res);
+  await checkPermission(res);
   await getItems();
   // console.log(items);
-  checkPermission(res);
   res.render("admin/admin_remove.ejs",{
     fruits : fruits
   });
 });
 
 app.get("/admin/remove/:name/confirm",async(req,res)=>{
-  checkPermission(res);
-  const fruit_name = req.params.name;
-  console.log(fruit_name);
-
-  await db.query("DELETE FROM fruits WHERE fruit_name = $1;",[fruit_name]);
-  res.redirect("/admin/remove");
+  if (await checkPermissionDeep(res,"check")){
+    const fruit_name = req.params.name;
+    console.log(fruit_name);
+  
+    await db.query("DELETE FROM fruits WHERE fruit_name = $1;",[fruit_name]);
+    res.redirect("/admin/remove");
+  }
 });
 
 // Get Fruit image from picalbayAPI.js
