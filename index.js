@@ -70,7 +70,11 @@ app.get("/", async (req, res) => {
 
 // POST a new post
 app.post("/submit", async(req, res) => {
-  let answer = req.body.answer.trim();
+  if (typeof req.body.answer !== "string") {
+    return res.status(400).send("Answer is required.");
+  }
+
+  const answer = req.body.answer.trim();
   let isCorrect = false;
   const current_fruit = currentQuestion.fruit_name
   const current_color = currentQuestion.fruit_color

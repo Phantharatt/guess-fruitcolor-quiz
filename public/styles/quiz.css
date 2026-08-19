@@ -187,8 +187,8 @@ body {
   .image-container {
     margin: 10px auto 20px;
     max-width: 100%;
-    max-height: 250px;
-    overflow: hidden;
+    max-height: min(55vh, 500px);
+    overflow: auto;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   }
@@ -196,7 +196,7 @@ body {
   .image-container img {
     width: 100%;
     height: auto;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
   

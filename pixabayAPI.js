@@ -2,8 +2,7 @@ import dotenv from 'dotenv';
 import axios from 'axios';
 
 dotenv.config();
-// const pixabay_api = process.env.PIXABAY_API_KEY;
-const pixabay_api = process.env.PIXABAY_API;
+const pixabay_api = process.env.PIXABAY_API_KEY;
 const pixabay_api_url = 'https://pixabay.com/api/';
 
 export async function getFruitImages(fruit,color) {
