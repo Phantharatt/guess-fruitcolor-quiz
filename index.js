@@ -10,15 +10,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT
 
-const db = new pg.Client({
+const db = new pg.Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT
+  port: process.env.DB_PORT,
+  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined
 });
-
-db.connect();
 
 // for login Page 
 var user_login = "";
@@ -44,6 +43,8 @@ db.query("SELECT * FROM fruits",(err, res)=>{
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.set("view engine", "ejs");
+app.set("views", "./views");
 
 let currentQuestion = {};
 
@@ -405,6 +406,10 @@ app.get("/fruit-images/:fruit", async (req, res) => {
 
 
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
+export default app;
+
+if (!process.env.VERCEL) {
+  app.listen(port || 3000, () => {
+    console.log(`Server is running at http://localhost:${port || 3000}`);
+  });
+}
