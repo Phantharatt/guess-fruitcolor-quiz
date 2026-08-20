@@ -30,14 +30,14 @@ let totalCorrect = 0;
 // bcrypt config
 const saltRounds = 10;
 
-
-db.query("SELECT * FROM fruits",(err, res)=>{
-  if(err){
-    console.log("query Error !!!", err.stack);
-  }else{
-    quiz = res.rows;
+async function loadQuiz() {
+  if (quiz.length > 0) {
+    return;
   }
-});
+
+  const result = await db.query("SELECT * FROM fruits");
+  quiz = result.rows;
+}
 
 
 // Middleware
@@ -50,6 +50,12 @@ let currentQuestion = {};
 
 
 async function nextQuestion() {
+  await loadQuiz();
+
+  if (quiz.length === 0) {
+    throw new Error("The fruits table is empty.");
+  }
+
   const randomFruit = quiz[Math.floor(Math.random() * quiz.length)];
 
   currentQuestion = randomFruit;
@@ -60,7 +66,14 @@ async function nextQuestion() {
 // GET home page
 app.get("/", async (req, res) => {
   totalCorrect = 0;
-  await nextQuestion();
+
+  try {
+    await nextQuestion();
+  } catch (error) {
+    console.error("Unable to load quiz:", error);
+    return res.status(503).send("The quiz database is unavailable. Check the Vercel database environment variables.");
+  }
+
   // console.log(currentQuestion);
   res.render("index.ejs", { 
     question: currentQuestion,
