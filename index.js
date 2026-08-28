@@ -14,10 +14,21 @@ const port = process.env.PORT
 // Vercel's Supabase integration provides POSTGRES_URL. It is a pooled, SSL
 // connection URL, which is the appropriate endpoint for Vercel functions.
 const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+function withoutUrlSslOptions(connectionString) {
+  const url = new URL(connectionString);
+  // node-postgres lets these URL options replace the `ssl` object below.
+  // Supabase/Vercel URLs commonly include `sslmode=require`.
+  for (const option of ["ssl", "sslmode", "sslcert", "sslkey", "sslrootcert"]) {
+    url.searchParams.delete(option);
+  }
+  return url.toString();
+}
+
 const db = new pg.Pool(
   databaseUrl
     ? {
-        connectionString: databaseUrl,
+        connectionString: withoutUrlSslOptions(databaseUrl),
         ssl: { rejectUnauthorized: false },
         // A serverless function can be scaled into many instances. Keep each
         // instance small and let Supabase's pooler manage the shared pool.
