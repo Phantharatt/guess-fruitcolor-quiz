@@ -213,6 +213,12 @@ app.post("/submit", async(req, res) => {
   }
 });
 
+// A browser can reach this URL after refreshing a form response. `/submit`
+// only accepts answers by POST, so send direct GET requests back to the game.
+app.get("/submit", (req, res) => {
+  res.redirect(303, "/");
+});
+
 // Login Page
 app.get("/login",async(req,res)=>{
   res.render("login.ejs");
