@@ -11,14 +11,28 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT
 
-const db = new pg.Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined
-});
+// Vercel's Supabase integration provides POSTGRES_URL. It is a pooled, SSL
+// connection URL, which is the appropriate endpoint for Vercel functions.
+const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const db = new pg.Pool(
+  databaseUrl
+    ? {
+        connectionString: databaseUrl,
+        ssl: { rejectUnauthorized: false },
+        // A serverless function can be scaled into many instances. Keep each
+        // instance small and let Supabase's pooler manage the shared pool.
+        max: 1,
+      }
+    : {
+        // Keep local development compatible with the original .env format.
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_NAME,
+        password: process.env.DB_PASSWORD,
+        port: process.env.DB_PORT,
+        ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+      }
+);
 
 // bcrypt config
 const saltRounds = 10;
