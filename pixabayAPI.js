@@ -14,10 +14,9 @@ export async function getFruitImages(fruit,color) {
                 per_page: 3
             }
         });
-        // console.log(response.data.hits[0]);
         return response.data.hits[0];
     } catch (err) {
-        console.error('Can not get data from Pixabay API:', err);
+        console.error('Unable to fetch a fruit image from Pixabay.');
         return [];
     }
 }

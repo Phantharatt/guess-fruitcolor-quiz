@@ -202,7 +202,6 @@ app.post("/submit", async(req, res) => {
       });
     }
     catch(err){
-      console.log("Can't GET fruit image",err);
       res.render("gameover.ejs", {
         question: finalQuestion,
         totalScore: finalScore,
@@ -222,7 +221,6 @@ app.get("/login",async(req,res)=>{
 app.post("/login",async(req,res)=>{
   const username = req.body.username;
   const password = req.body.password;
-  console.log(username,password);
   
   // Check admin login
   const checkadmin = await db.query("SELECT * FROM admins WHERE username = $1;", [username]);
@@ -231,7 +229,6 @@ app.post("/login",async(req,res)=>{
     // Use bcrypt to compare password
     const match = await bcrypt.compare(password, checkadmin.rows[0].password);
     if (match) {
-      console.log("Welcome Admin : ", username);
       const session = getSession(req);
       session.username = username;
       session.isAdmin = true;
@@ -252,20 +249,17 @@ app.post("/login",async(req,res)=>{
       // Use bcrypt to compare password
       const match = await bcrypt.compare(password, checkuser.rows[0].password);
       if (match) {
-        console.log("login Complete");
         const session = getSession(req);
         session.username = username;
         session.isAdmin = false;
         setSession(res, session);
         res.redirect("/");
       } else {
-        console.log("login fail")
         res.render("login.ejs", {
           error : "Wrong username or password"
         });
       }
     } else {
-      console.log("login fail")
       res.render("login.ejs", {
         error : "Wrong username or password"
       });
@@ -289,7 +283,6 @@ app.post("/register",async(req,res)=>{
   const password = req.body.password;
   const confirm_password = req.body.confirm_password;
   const checkadmin = await db.query("SELECT * FROM admins WHERE LOWER(username) = LOWER($1)",[username]);
-  console.log(username,password);
   if (checkadmin.rowCount == 0){
     if (password == confirm_password){
       try {
@@ -323,14 +316,14 @@ app.get("/scoreboard", async (req, res) => {
   try {
     const result = await db.query("SELECT username,score FROM scoreboard ORDER BY score DESC , id ASC");
     const items = result.rows;
-    console.log(items);
     res.render("scoreboard.ejs", {
       listItems: items,
       user: session.username,
       permission: session.isAdmin
     });
   } catch (err) {
-    console.log(err);
+    console.error("Unable to load scoreboard");
+    res.status(503).send("The scoreboard is temporarily unavailable.");
   }
 });
 
@@ -374,14 +367,12 @@ app.post("/admin/add",async(req,res)=>{
         });
       }
       else{
-        console.log("Name error!!!");
         res.render("admin/admin_add.ejs",{
           message : "Already have this Fruit Name in Database!!!"
         });
       }
     }
     else{
-      console.log("Color error!!!");
       res.render("admin/admin_add.ejs",{
         message : "This color does not exist!!!"
       });
@@ -408,7 +399,6 @@ app.get("/admin/edit/:name",async(req,res)=>{
   if (!checkPermission(req, res)) return;
   const fruit_name = req.params.name.trim();
   const result = await db.query("SELECT * FROM fruits WHERE fruit_name = $1;",[fruit_name]);
-  console.log(result.rows[0]);
   res.render("admin/admin_edit_detail.ejs",{
     fruit_name : result.rows[0].fruit_name,
     fruit_color : result.rows[0].fruit_color
@@ -490,8 +480,4 @@ app.get("/fruit-images/:fruit", async (req, res) => {
 
 export default app;
 
-if (!process.env.VERCEL) {
-  app.listen(port || 3000, () => {
-    console.log(`Server is running at http://localhost:${port || 3000}`);
-  });
-}
+if (!process.env.VERCEL) app.listen(port || 3000);
