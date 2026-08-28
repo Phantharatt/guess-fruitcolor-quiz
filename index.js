@@ -4,6 +4,7 @@ import pg from "pg";
 import dotenv from 'dotenv';
 import { getFruitImages } from './pixabayAPI.js';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -19,24 +20,75 @@ const db = new pg.Pool({
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined
 });
 
-// for login Page 
-var user_login = "";
-let permission = false;
-
-// for quiz
-let quiz = [];
-let totalCorrect = 0;
-
 // bcrypt config
 const saltRounds = 10;
+const SESSION_COOKIE = "fruit_quiz_session";
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+
+function getSessionSecret() {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET must be configured in production.");
+  }
+  return "development-only-session-secret";
+}
+
+function emptySession() {
+  return { username: "", isAdmin: false, score: 0, question: null };
+}
+
+function parseCookies(request) {
+  return Object.fromEntries((request.headers.cookie || "").split(";").filter(Boolean).map((cookie) => {
+    const index = cookie.indexOf("=");
+    return [cookie.slice(0, index).trim(), cookie.slice(index + 1)];
+  }));
+}
+
+function signSession(payload) {
+  return crypto.createHmac("sha256", getSessionSecret()).update(payload).digest("base64url");
+}
+
+function getSession(request) {
+  const token = parseCookies(request)[SESSION_COOKIE];
+  if (!token) return emptySession();
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return emptySession();
+
+  const received = Buffer.from(signature);
+  const expected = Buffer.from(signSession(payload));
+  if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) return emptySession();
+
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!Number.isInteger(session.expiresAt) || session.expiresAt <= Date.now()) return emptySession();
+    return {
+      username: typeof session.username === "string" ? session.username : "",
+      isAdmin: session.isAdmin === true,
+      score: Number.isInteger(session.score) && session.score >= 0 ? session.score : 0,
+      question: session.question && typeof session.question === "object" ? session.question : null,
+      expiresAt: session.expiresAt
+    };
+  } catch {
+    return emptySession();
+  }
+}
+
+function setSession(response, session) {
+  session.expiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
+  const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
+  const token = `${payload}.${signSession(payload)}`;
+  const attributes = ["HttpOnly", "Path=/", "SameSite=Lax", `Max-Age=${SESSION_MAX_AGE_SECONDS}`];
+  if (process.env.VERCEL || process.env.NODE_ENV === "production") attributes.push("Secure");
+  response.setHeader("Set-Cookie", `${SESSION_COOKIE}=${token}; ${attributes.join("; ")}`);
+}
+
+function clearSession(response) {
+  response.setHeader("Set-Cookie", `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
+}
 
 async function loadQuiz() {
-  if (quiz.length > 0) {
-    return;
-  }
-
   const result = await db.query("SELECT * FROM fruits");
-  quiz = result.rows;
+  return result.rows;
 }
 
 
@@ -46,11 +98,8 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
-let currentQuestion = {};
-
-
 async function nextQuestion() {
-  await loadQuiz();
+  const quiz = await loadQuiz();
 
   if (quiz.length === 0) {
     throw new Error("The fruits table is empty.");
@@ -58,27 +107,27 @@ async function nextQuestion() {
 
   const randomFruit = quiz[Math.floor(Math.random() * quiz.length)];
 
-  currentQuestion = randomFruit;
-  console.log(currentQuestion);
+  return randomFruit;
 }
 
 
 // GET home page
 app.get("/", async (req, res) => {
-  totalCorrect = 0;
+  const session = getSession(req);
 
   try {
-    await nextQuestion();
+    session.score = 0;
+    session.question = await nextQuestion();
+    setSession(res, session);
   } catch (error) {
     console.error("Unable to load quiz:", error);
     return res.status(503).send("The quiz database is unavailable. Check the Vercel database environment variables.");
   }
 
-  // console.log(currentQuestion);
   res.render("index.ejs", { 
-    question: currentQuestion,
-    user: user_login,
-    permission : permission
+    question: session.question,
+    user: session.username,
+    permission : session.isAdmin
   });
 });
 
@@ -88,45 +137,52 @@ app.post("/submit", async(req, res) => {
     return res.status(400).send("Answer is required.");
   }
 
+  const session = getSession(req);
+  if (!session.question) return res.redirect("/");
+
   const answer = req.body.answer.trim();
   let isCorrect = false;
-  const current_fruit = currentQuestion.fruit_name
-  const current_color = currentQuestion.fruit_color
+  const current_fruit = session.question.fruit_name;
+  const current_color = session.question.fruit_color;
   if (current_color.toLowerCase() == answer.toLowerCase()) {
-    totalCorrect++;
-    console.log("Total Score : ",totalCorrect);
+    session.score++;
     isCorrect = true;
-    nextQuestion();
+    session.question = await nextQuestion();
+    setSession(res, session);
     res.render("index.ejs", {
-      question: currentQuestion,
+      question: session.question,
       wasCorrect: isCorrect,
-      totalScore: totalCorrect,
-      user : user_login,
-      permission : permission
+      totalScore: session.score,
+      user : session.username,
+      permission : session.isAdmin
     });
   }
   else{
-    if (user_login != ""){
-      // console.log(user_login,totalCorrect);
-      await db.query("INSERT INTO scoreboard(username,score) VALUES ($1,$2);",[user_login,totalCorrect]);
+    const finalScore = session.score;
+    const finalQuestion = session.question;
+    if (session.username != ""){
+      await db.query("INSERT INTO scoreboard(username,score) VALUES ($1,$2);",[session.username, session.score]);
     }
+    session.score = 0;
+    session.question = null;
+    setSession(res, session);
     try{
       const image = await getFruitImages(current_fruit, current_color);
       res.render("gameover.ejs",{
-        question: currentQuestion,
-        totalScore: totalCorrect,
-        user: user_login,
-        permission : permission,
+        question: finalQuestion,
+        totalScore: finalScore,
+        user: session.username,
+        permission : session.isAdmin,
         image: image
       });
     }
     catch(err){
       console.log("Can't GET fruit image",err);
       res.render("gameover.ejs", {
-        question: currentQuestion,
-        totalScore: totalCorrect,
-        user: user_login,
-        permission: permission,
+        question: finalQuestion,
+        totalScore: finalScore,
+        user: session.username,
+        permission: session.isAdmin,
         images: []
       });
     }
@@ -151,10 +207,12 @@ app.post("/login",async(req,res)=>{
     const match = await bcrypt.compare(password, checkadmin.rows[0].password);
     if (match) {
       console.log("Welcome Admin : ", username);
-      user_login = username;
-      permission = true;
+      const session = getSession(req);
+      session.username = username;
+      session.isAdmin = true;
+      setSession(res, session);
       res.render("admin/admin_menu.ejs", {
-        user : user_login
+        user: session.username
       });
     } else {
       res.render("login.ejs", {
@@ -170,7 +228,10 @@ app.post("/login",async(req,res)=>{
       const match = await bcrypt.compare(password, checkuser.rows[0].password);
       if (match) {
         console.log("login Complete");
-        user_login = username;
+        const session = getSession(req);
+        session.username = username;
+        session.isAdmin = false;
+        setSession(res, session);
         res.redirect("/");
       } else {
         console.log("login fail")
@@ -189,9 +250,8 @@ app.post("/login",async(req,res)=>{
 
 // Logout
 app.get("/logout",(req,res)=>{
-  user_login = "";
+  clearSession(res);
   res.redirect("/");
-  permission = false;
 });
 
 // Register Page 
@@ -234,14 +294,15 @@ app.post("/register",async(req,res)=>{
 
 // Scoreboard Page
 app.get("/scoreboard", async (req, res) => {
+  const session = getSession(req);
   try {
     const result = await db.query("SELECT username,score FROM scoreboard ORDER BY score DESC , id ASC");
     const items = result.rows;
     console.log(items);
     res.render("scoreboard.ejs", {
       listItems: items,
-      user: user_login,
-      permission : permission
+      user: session.username,
+      permission: session.isAdmin
     });
   } catch (err) {
     console.log(err);
@@ -250,37 +311,30 @@ app.get("/scoreboard", async (req, res) => {
 
 
 //check Permission
-function checkPermission(res){
-  if (!permission){
+function checkPermission(req, res) {
+  if (!getSession(req).isAdmin) {
     res.redirect("/");
+    return false;
   }
-}
-
-function checkPermissionDeep(res,wait){
-  if (!permission){
-    res.redirect("/");
-    return false
-  }
-  else{
-    return true
-  }
+  return true;
 }
 
 // Admin Page
 app.get("/admin",(req,res)=>{
-  checkPermission(res);
+  if (!checkPermission(req, res)) return;
   res.render("admin/admin_menu.ejs",{
-    user : user_login
+    user: getSession(req).username
   });
 });
 
 // Admin Add Page
 app.get("/admin/add",(req,res)=>{
-  checkPermission(res);
+  if (!checkPermission(req, res)) return;
   res.render("admin/admin_add.ejs");
 });
 
 app.post("/admin/add",async(req,res)=>{
+  if (!checkPermission(req, res)) return;
   const fruit_name = req.body.fruit_name.trim();
   const fruit_color = req.body.fruit_color.trim();
   const check_name = await db.query("SELECT * FROM fruits WHERE LOWER(fruit_name) = LOWER($1) ",[fruit_name]);
@@ -309,30 +363,24 @@ app.post("/admin/add",async(req,res)=>{
     }
 });
 
-let fruits = [];
-
-async function getItems(){
-  fruits = [];
+async function getItems() {
   const result = await db.query("SELECT * FROM fruits ORDER BY id ASC");
-  result.rows.forEach(data =>{
-    fruits.push({name:data.fruit_name,color:data.fruit_color});
-  });
+  return result.rows.map((data) => ({ name: data.fruit_name, color: data.fruit_color }));
 }
 
 
 
 // Admin Edit Page
 app.get("/admin/edit",async(req,res)=>{
-  await checkPermission(res);
-  await getItems();
-  // console.log(items);
+  if (!checkPermission(req, res)) return;
+  const fruits = await getItems();
   res.render("admin/admin_edit.ejs",{
     fruits : fruits
   });
 });
 
 app.get("/admin/edit/:name",async(req,res)=>{
-  await checkPermission(res);
+  if (!checkPermission(req, res)) return;
   const fruit_name = req.params.name.trim();
   const result = await db.query("SELECT * FROM fruits WHERE fruit_name = $1;",[fruit_name]);
   console.log(result.rows[0]);
@@ -345,7 +393,7 @@ app.get("/admin/edit/:name",async(req,res)=>{
 
 // Admin Confirm Edit Page
 app.post("/admin/edit/:name/update", async (req, res) => {
-  await checkPermission(res);
+  if (!checkPermission(req, res)) return;
   const oldName = req.params.name.trim();
   const newName = req.body.fruit_name.trim();
   const newColor = req.body.fruit_color;
@@ -387,22 +435,18 @@ app.post("/admin/edit/:name/update", async (req, res) => {
 
 // Admin Remove Page
 app.get("/admin/remove",async(req,res)=>{
-  await checkPermission(res);
-  await getItems();
-  // console.log(items);
+  if (!checkPermission(req, res)) return;
+  const fruits = await getItems();
   res.render("admin/admin_remove.ejs",{
     fruits : fruits
   });
 });
 
-app.get("/admin/remove/:name/confirm",async(req,res)=>{
-  if (await checkPermissionDeep(res,"check")){
-    const fruit_name = req.params.name;
-    console.log(fruit_name);
-  
-    await db.query("DELETE FROM fruits WHERE fruit_name = $1;",[fruit_name]);
-    res.redirect("/admin/remove");
-  }
+app.post("/admin/remove/:name/confirm",async(req,res)=>{
+  if (!checkPermission(req, res)) return;
+  const fruit_name = req.params.name;
+  await db.query("DELETE FROM fruits WHERE fruit_name = $1;",[fruit_name]);
+  res.redirect("/admin/remove");
 });
 
 // Get Fruit image from picalbayAPI.js

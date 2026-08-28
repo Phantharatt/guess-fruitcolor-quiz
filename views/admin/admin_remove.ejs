@@ -40,7 +40,11 @@
         function confirmDelete(fruit_name) {
             document.getElementById('confirmModal').style.display = 'block';
             document.getElementById('confirmDelete').onclick = function() {
-                window.location.href = '/admin/remove/' + fruit_name + '/confirm';
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/remove/' + encodeURIComponent(fruit_name) + '/confirm';
+                document.body.appendChild(form);
+                form.submit();
             };
         }
 
